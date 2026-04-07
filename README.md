@@ -17,7 +17,7 @@ Professor: **Christiano Piccinin**
 | Carlos Tomasi    | https://github.com/TomasiCarlos       |
 | Gustavo Antonius | https://github.com/guarannius-estudos |
 | Leonardo Latzke  | https://github.com/LeoLatzke          |
-| Renan Apolinario | https://github.com/                   |
+| Renan Apolinario | https://github.com/rrenanap           |
 
 ## 🎯 Descrição do Projeto
 
