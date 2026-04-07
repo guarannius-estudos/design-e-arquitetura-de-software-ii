@@ -14,7 +14,7 @@ Professor: **Christiano Piccinin**
 
 | Nome             | GitHub                                |
 | ---------------- | ------------------------------------- |
-| Carlos Tomasi    | https://github.com/                   |
+| Carlos Tomasi    | https://github.com/TomasiCarlos       |
 | Gustavo Antonius | https://github.com/guarannius-estudos |
 | Leonardo Latzke  | https://github.com/                   |
 | Renan Apolinario | https://github.com/                   |
@@ -33,8 +33,8 @@ ERP → Azure Functions → Blob Storage → Azure Functions → Azure SQL Datab
 .
 ├── docs
 │   ├── c4
-│   │   ├──
-│   │   └──
+│   │   ├── 01-context.png
+│   │   └── 02-container.png
 │   │
 │   └── adr
 │       ├── ADR001.md
