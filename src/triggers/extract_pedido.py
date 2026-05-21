@@ -28,7 +28,7 @@ def extract_pedido(timer: func.TimerRequest) -> None:
     try:
         with pyodbc.connect(conn_str) as conn:
             cursor = conn.cursor()
-            query = "SELECT * FROM erp.pedido"
+            query = "SELECT TOP 5 * FROM erp.pedido"
             cursor.execute(query)
             rows = cursor.fetchall()
             
