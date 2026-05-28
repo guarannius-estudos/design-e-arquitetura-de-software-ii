@@ -39,6 +39,7 @@ ERP → Azure Functions → Blob Storage → Azure Functions → Azure SQL Datab
 │   └── adr
 │       ├── ADR001.md
 │       └── ADR002.md
+│       └── ADR003.md
 │
 └── README.md
 ```
