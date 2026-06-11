@@ -2,53 +2,97 @@ import azure.functions as func
 import logging
 import os
 import pyodbc
-import time
-import statistics
 
 app = func.Blueprint()
 
 @app.timer_trigger(schedule="0 0 6 * * *", arg_name="timer", run_on_startup=False)
 def extract_categoria_produto(timer: func.TimerRequest) -> None:
-    server = os.getenv("SQL_SERVER_SOURCE")
-    database = os.getenv("SQL_DATABASE_SOURCE")
-    user = os.getenv("SQL_USER_SOURCE")
-    password = os.getenv("SQL_PASSWORD_SOURCE")
-
-    logging.info(f"Server: {server}, Database: {database}, User: {user}, Password: {password}")
-
-    conn_str = (
+    source_conn_str = (
         "DRIVER={ODBC Driver 18 for SQL Server};"
-        f"SERVER={server};"
-        f"DATABASE={database};"
-        f"UID={user};"
-        f"PWD={password};"
+        f"SERVER={os.getenv('SQL_SERVER_SOURCE')};"
+        f"DATABASE={os.getenv('SQL_DATABASE_SOURCE')};"
+        f"UID={os.getenv('SQL_USER_SOURCE')};"
+        f"PWD={os.getenv('SQL_PASSWORD_SOURCE')};"
         "Encrypt=yes;"
         "TrustServerCertificate=no;"
         "Connection Timeout=30;"
     )
 
-    tempos = []
+    dest_conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={os.getenv('SQL_SERVER_DEST')};"
+        f"DATABASE={os.getenv('SQL_DATABASE_DEST')};"
+        f"UID={os.getenv('SQL_USER_DEST')};"
+        f"PWD={os.getenv('SQL_PASSWORD_DEST')};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
 
     try:
-        for i in range(2):
-            inicio = time.perf_counter()
+        with pyodbc.connect(source_conn_str) as source_conn:
+            source_cursor = source_conn.cursor()
 
-            with pyodbc.connect(conn_str) as conn:
-                cursor = conn.cursor()
-                query = "SELECT * FROM erp.categoria_produto"
-                cursor.execute(query)
-                rows = cursor.fetchall()
+            source_cursor.execute("""
+                SELECT cd_categoria,
+                       nm_categoria,
+                       fl_ativo,
+                       nm_sistema_origem,
+                       cd_registro_origem
+                  FROM erp.categoria_produto
+            """)
 
-            fim = time.perf_counter()
-            tempo = fim - inicio
-            tempos.append(tempo)
+            categorias = source_cursor.fetchall()
 
-            logging.info(f"[pyodbc] Execução {i+1}: {tempo:.4f}s")
-            logging.info(f"[pyodbc] Total linhas: {len(rows)}")
+        with pyodbc.connect(dest_conn_str) as dest_conn:
+            dest_cursor = dest_conn.cursor()
 
-        media = statistics.mean(tempos)
+            dest_cursor.execute(f"SET IDENTITY_INSERT dbo.categoria_produto OFF")
 
-        logging.info(f"[pyodbc] Média final: {media:.4f}s")
+            for categoria in categorias:
+                dest_cursor.execute("""
+                MERGE dbo.categoria_produto AS target
+                USING (
+                    SELECT ? AS cd_categoria,
+                           ? AS nm_categoria,
+                           ? AS fl_ativo,
+                           ? AS nm_sistema_origem,
+                           ? AS cd_registro_origem
+                ) AS source
+                ON target.cd_categoria = source.cd_categoria
+                WHEN MATCHED THEN
+                    UPDATE SET
+                        nm_categoria       = source.nm_categoria,
+                        fl_ativo           = source.fl_ativo,
+                        nm_sistema_origem  = source.nm_sistema_origem,
+                        cd_registro_origem = source.cd_registro_origem,
+                        dt_atualizacao     = SYSDATETIME()
+                WHEN NOT MATCHED THEN
+                    INSERT (
+                        cd_categoria,
+                        nm_categoria,
+                        fl_ativo,
+                        nm_sistema_origem,
+                        cd_registro_origem
+                    ) VALUES (
+                        source.cd_categoria,
+                        source.nm_categoria,
+                        source.fl_ativo,
+                        source.nm_sistema_origem,
+                        source.cd_registro_origem
+                    );
+                """,
+                categoria.cd_categoria,
+                categoria.nm_categoria,
+                categoria.fl_ativo,
+                categoria.nm_sistema_origem,
+                categoria.cd_registro_origem
+                )
+
+            dest_cursor.execute("SET IDENTITY_INSERT dbo.categoria_produto ON")
+
+            dest_conn.commit()
+
     except Exception as e:
         logging.error(f"Erro ao ler erp.categoria_produto: {str(e)}")
         raise
