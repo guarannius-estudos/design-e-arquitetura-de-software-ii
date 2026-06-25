@@ -36,10 +36,13 @@ ERP → Azure Functions → Blob Storage → Azure Functions → Azure SQL Datab
 │   │   ├── 01-context.png
 │   │   └── 02-container.png
 │   │
-│   └── adr
-│       ├── ADR001.md
-│       └── ADR002.md
-│       └── ADR003.md
+│   ├── adr
+│   │    ├── ADR001.md
+│   │    ├── ADR002.md
+│   │    └── ADR003.md
+│   │
+│   └── pbix
+│        └── das2.pbix
 │
 └── README.md
 ```
@@ -48,3 +51,8 @@ ERP → Azure Functions → Blob Storage → Azure Functions → Azure SQL Datab
 
 1. Acesse `docs/c4` para diagramas C4
 2. Acesse `docs/adr` para ADRs (Architecture Decision Records)
+3. Acesse `docs/pbix` para diagrama do Power Bi
+
+## 📊 Power Bi
+
+![Power Bi](docs/pbix/das2.png)
